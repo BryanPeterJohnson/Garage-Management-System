@@ -1,4 +1,7 @@
 // app/webpack.renderer.config.js
+const webpack = require('webpack');
+require('dotenv').config();
+
 const rules = require('./webpack.rules');
 
 rules.push({
@@ -15,6 +18,12 @@ rules.push({
 
 module.exports = {
   module: { rules },
+  plugins: [
+    new webpack.DefinePlugin({
+      // make it available in the renderer bundle
+      'process.env.API_BASE': JSON.stringify(process.env.API_BASE || 'http://127.0.0.1:5000/api'),
+    }),
+  ],
   devServer: {
     headers: {
       'Content-Security-Policy': [

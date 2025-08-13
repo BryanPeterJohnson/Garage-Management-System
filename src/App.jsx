@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import PreBooking from "./pages/PreBooking.jsx";
+import PreBooking from "./pages/PreBooking/index.jsx";
 import Login from "./pages/Login.jsx";
 import { apiLogin, setToken, clearToken } from "./lib/api";
 

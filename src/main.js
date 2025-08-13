@@ -3,7 +3,6 @@ const { app, BrowserWindow, session } = require('electron');
 
 let mainWindow; // single window ref
 
-// Dev CSP so fetch() to 127.0.0.1:5000 works
 const DEV_CSP = [
   "default-src 'self' data: blob:",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
