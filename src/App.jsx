@@ -66,7 +66,7 @@ function RequireAuth({ user }) {
   return <Outlet />;
 }
 function Shell({ user, onLogout }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const handleLogoutClick = () => { onLogout?.(); navigate("/login", { replace: true }); };
 

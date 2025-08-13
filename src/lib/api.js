@@ -70,7 +70,7 @@ export const apiGetBooking = (id) => request(`/bookings/${id}`);
 export const apiCreateBooking = (payload) =>
     request("/bookings", { method: "POST", body: payload });
 
-// Update booking editable fields (not status)
+// Update editable fields of a booking (PATCH /api/bookings/:id)
 export const apiUpdateBooking = (id, payload) =>
     request(`/bookings/${id}`, { method: "PATCH", body: payload });
 

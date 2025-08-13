@@ -221,17 +221,6 @@ export default function BookingForm({ loading, onSubmit, onCancel }) {
                 tabIndex={-1}
                 aria-readonly="true"
             />
-
-            {/* Status display only */}
-            <input
-                type="text"
-                value="Pending"
-                readOnly
-                className="border border-gray-300 rounded p-2 bg-gray-100"
-                tabIndex={-1}
-                aria-readonly="true"
-            />
-
             <div className="md:col-span-2 flex gap-2">
                 <button
                     type="submit"

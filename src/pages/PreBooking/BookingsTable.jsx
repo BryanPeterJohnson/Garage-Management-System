@@ -1,25 +1,17 @@
-// src/pages/PreBooking/BookingsTable.jsx
+// app/src/pages/PreBooking/BookingsTable.jsx
 import React from "react";
 import BookingRow from "./BookingRow.jsx";
 
-export default function BookingsTable({ bookings, onCarIn }) {
-    if (!bookings?.length) {
-        return (
-            <div className="bg-white rounded-lg shadow border border-blue-100">
-                <p className="text-center text-gray-500 p-4">No bookings yet</p>
-            </div>
-        );
-    }
-
+export default function BookingsTable({ bookings, onCarIn, onUpdate, saving }) {
     return (
-        <div className="bg-white rounded-lg shadow overflow-x-auto border border-blue-100">
+        <div className="bg-white rounded-lg shadow border border-blue-100 overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
                     <tr className="bg-blue-900 text-white">
                         <th className="p-2 border">#</th>
                         <th className="p-2 border">Pre-Booked</th>
                         <th className="p-2 border">Reg No.</th>
-                        <th className="p-2 border">Make & Model</th>
+                        <th className="p-2 border">Make &amp; Model</th>
                         <th className="p-2 border">Client</th>
                         <th className="p-2 border">Phone</th>
                         <th className="p-2 border">Address</th>
@@ -35,7 +27,14 @@ export default function BookingsTable({ bookings, onCarIn }) {
                 </thead>
                 <tbody>
                     {bookings.map((b, i) => (
-                        <BookingRow key={b._id} b={b} i={i} onCarIn={onCarIn} />
+                        <BookingRow
+                            key={b._id}
+                            b={b}
+                            i={i}
+                            onCarIn={onCarIn}
+                            onUpdate={onUpdate}
+                            saving={saving}
+                        />
                     ))}
                 </tbody>
             </table>

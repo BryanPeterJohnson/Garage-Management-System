@@ -1,6 +1,10 @@
-// src/pages/PreBooking/hooks/useBookings.js
+// app/src/pages/hooks/useBookings.js
 import { useEffect, useMemo, useState } from "react";
-import { apiGetBookings, apiCreateBooking } from "../lib/api"; // <-- from PreBooking/hooks -> lib
+import {
+    apiGetBookings,
+    apiCreateBooking,
+    apiUpdateBooking,
+} from "../lib/api.js";
 
 export default function useBookings() {
     const [items, setItems] = useState([]);
@@ -8,15 +12,18 @@ export default function useBookings() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
+    // Fetch list
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
                 setLoadingList(true);
-                const { items } = await apiGetBookings();
+                const { items: list = [] } = await apiGetBookings();
                 if (cancelled) return;
-                const sorted = [...(items || [])].sort((a, b) =>
-                    new Date(b?.preBookingDate || b?._id) - new Date(a?.preBookingDate || a?._id)
+                const sorted = [...list].sort(
+                    (a, b) =>
+                        new Date(b?.preBookingDate || b?._id) -
+                        new Date(a?.preBookingDate || a?._id)
                 );
                 setItems(sorted);
             } catch (err) {
@@ -25,9 +32,12 @@ export default function useBookings() {
                 if (!cancelled) setLoadingList(false);
             }
         })();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
+    // Create
     const create = async (payload) => {
         setError("");
         try {
@@ -44,5 +54,31 @@ export default function useBookings() {
         }
     };
 
-    return { items, loadingList, saving, error, setError, create, list: useMemo(() => items, [items]) };
+    // Update (PATCH only changed fields)
+    const update = async (id, patch) => {
+        setError("");
+        try {
+            setSaving(true);
+            const { booking } = await apiUpdateBooking(id, patch);
+            setItems((prev) => prev.map((it) => (it._id === id ? booking : it)));
+            return { ok: true, booking };
+        } catch (err) {
+            const msg = err?.message || "Failed to update booking";
+            setError(msg);
+            return { ok: false, error: msg };
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return {
+        items,
+        loadingList,
+        saving,
+        error,
+        setError,
+        create,
+        update,
+        list: useMemo(() => items, [items]),
+    };
 }
