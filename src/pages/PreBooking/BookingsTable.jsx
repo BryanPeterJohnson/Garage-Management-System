@@ -20,7 +20,8 @@ export default function BookingsTable({ bookings, onCarIn, onUpdate, saving }) {
                         <th className="p-2 border">Labour</th>
                         <th className="p-2 border">Parts</th>
                         <th className="p-2 border">Profit</th>
-                        <th className="p-2 border">Remarks</th>
+                        {/* ✅ Updated column header */}
+                        <th className="p-2 border">Services</th>
                         <th className="p-2 border">Status</th>
                         <th className="p-2 border">Actions</th>
                     </tr>

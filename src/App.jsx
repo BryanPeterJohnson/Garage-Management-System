@@ -4,8 +4,10 @@ import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import PreBooking from "./pages/PreBooking/index.jsx";
+import CarIn from "./pages/CarIn/CarIn.jsx"; // ✅ NEW PAGE
 import Login from "./pages/Login.jsx";
 import { apiLogin, setToken, clearToken } from "./lib/api";
+import Settings from "./pages/Settings/index.jsx";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -41,7 +43,9 @@ export default function App() {
       {/* Public */}
       <Route
         path="/login"
-        element={user ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />}
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />
+        }
       />
 
       {/* Private */}
@@ -50,12 +54,16 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/pre-booking" element={<PreBooking />} />
-          <Route path="/settings" element={<div>Settings page coming soon…</div>} />
+          <Route path="/car-in" element={<CarIn />} /> {/* ✅ NEW ROUTE */}
+          <Route path="/settings" element={<Settings/>} />
         </Route>
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+      <Route
+        path="*"
+        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
+      />
     </Routes>
   );
 }
@@ -68,7 +76,10 @@ function RequireAuth({ user }) {
 function Shell({ user, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const handleLogoutClick = () => { onLogout?.(); navigate("/login", { replace: true }); };
+  const handleLogoutClick = () => {
+    onLogout?.();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex">

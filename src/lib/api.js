@@ -1,82 +1,131 @@
-// app/src/lib/api.js
-
-// This value comes from .env via Webpack DefinePlugin.
-// Fallback keeps dev working even if env isn't wired.
-const API_BASE = process.env.API_BASE || "http://127.0.0.1:5000/api";
-
+const API_BASE = "http://192.168.18.99:5000/api";
 const TOKEN_KEY = "gms_token";
 
-/* ---------------- Token helpers ---------------- */
-export function setToken(token) { localStorage.setItem(TOKEN_KEY, token); }
-export function getToken() { return localStorage.getItem(TOKEN_KEY); }
-export function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+// ===== TOKEN MANAGEMENT =====
+export function setToken(token) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
 
-/* ---------------- Core request wrapper ---------------- */
-async function request(path, { method = "GET", body, headers = {}, signal } = {}) {
+export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+// ===== GENERIC API REQUEST HELPER =====
+async function apiRequest(endpoint, method = "GET", body = null, auth = true) {
+  const headers = { "Content-Type": "application/json" };
+
+  if (auth) {
     const token = getToken();
-
-    const res = await fetch(`${API_BASE}${path}`, {
-        method,
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...headers,
-        },
-        body: body != null ? JSON.stringify(body) : undefined,
-        signal,
-    });
-
-    let data = null;
-    try { data = await res.json(); } catch { /* 204/empty body is fine */ }
-
-    if (!res.ok) {
-        const msg = data?.error || data?.message || `${res.status} ${res.statusText}`;
-        if (res.status === 401) {
-            // token invalid/expired — clear so UI can redirect to login
-            clearToken();
-        }
-        throw new Error(msg);
+    if (!token) {
+      console.error("❌ No token found in localStorage. Please login first.");
+      throw new Error("No authentication token found.");
     }
+    console.log(`🔑 Using token: ${token}`);
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
-    return data ?? {};
+  const url = `${API_BASE}${endpoint}`;
+  console.log(`🌍 Request: ${method} ${url}`);
+
+  const options = { method, headers };
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(url, options);
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // empty or invalid JSON
+  }
+
+  if (!res.ok) {
+    const msg = data?.error || data?.message || `${res.status} ${res.statusText}`;
+    if (res.status === 401) {
+      console.warn("⚠️ Unauthorized. Clearing token.");
+      clearToken();
+    }
+    throw new Error(msg);
+  }
+
+  return data ?? {};
 }
 
-/* ---------------- Auth ---------------- */
+// ===== AUTH =====
 export async function apiLogin(username, password) {
-    const data = await request("/auth/login", {
-        method: "POST",
-        body: { username, password },
-    });
-    if (data?.token) setToken(data.token); // persist for subsequent calls
-    return data; // { token, user: { id, username, userType } }
+  const data = await apiRequest("/auth/login", "POST", { username, password }, false);
+  if (data?.token) setToken(data.token);
+  return data;
 }
 
-/* ---------------- Bookings ---------------- */
-
-// List bookings with optional filters: { status, regNo, from, to, page, limit, sort }
-export function apiGetBookings(params = {}) {
-    const qs = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-        if (v !== undefined && v !== null && String(v) !== "") qs.append(k, v);
-    });
-    const query = qs.toString() ? `?${qs.toString()}` : "";
-    return request(`/bookings${query}`);
+export async function apiLogout() {
+  clearToken();
 }
 
-// Get single booking
-export const apiGetBooking = (id) => request(`/bookings/${id}`);
+// ===== BOOKINGS =====
+export async function getAllBookings(params = {}) {
+  const query = {
+    page: params.page ?? 1,
+    limit: params.limit ?? 1000,
+    ...params
+  };
+  Object.keys(query).forEach(key => {
+    if (query[key] === undefined || query[key] === null) {
+      delete query[key];
+    }
+  });
+  const qs = new URLSearchParams(query).toString();
+  return apiRequest(`/bookings?${qs}`, "GET");
+}
 
-// Create pre-booking (payload should match backend fields)
-export const apiCreateBooking = (payload) =>
-    request("/bookings", { method: "POST", body: payload });
+export async function getArrivedBookings(params = {}) {
+  const qs = new URLSearchParams({
+    page: params.page || 1,
+    limit: params.limit || 1000,
+    ...params
+  });
+  return apiRequest(`/bookings/status/arrived?${qs.toString()}`, "GET");
+}
 
-// Update editable fields of a booking (PATCH /api/bookings/:id)
-export const apiUpdateBooking = (id, payload) =>
-    request(`/bookings/${id}`, { method: "PATCH", body: payload });
+export async function createBooking(data) {
+  return apiRequest("/bookings", "POST", data);
+}
 
-// Change status: action is one of 'confirm' | 'arrive' | 'complete' | 'cancel'
-export const apiChangeBookingStatus = (id, action) =>
-    request(`/bookings/${id}/status`, { method: "PATCH", body: { action } });
+export async function updateBookingStatus(bookingId, action) {
+  return apiRequest(`/bookings/${bookingId}/status`, "PATCH", { action });
+}
 
-// (Optional) export base for debugging
+// ===== DASHBOARD =====
+export async function getDashboardStats() {
+  return apiRequest("/dashboard", "GET");
+}
+
+// ===== SERVICES =====
+export async function getServices() {
+  return apiRequest("/services", "GET");
+}
+
+export async function addService(data) {
+  return apiRequest("/services", "POST", data);
+}
+
+export async function updateService(id, data) {
+  return apiRequest(`/services/${id}`, "PUT", data);
+}
+
+export async function deleteService(id) {
+  return apiRequest(`/services/${id}`, "DELETE");
+}
+
+// ===== LEGACY EXPORTS =====
+export const apiGetBookings = getAllBookings;
+export const apiCreateBooking = createBooking;
+export const apiUpdateBooking = updateBookingStatus;
+
 export { API_BASE };

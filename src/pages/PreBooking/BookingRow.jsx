@@ -1,14 +1,22 @@
-// app/src/pages/PreBooking/BookingRow.jsx
+// src/pages/PreBooking/BookingRow.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { fmtDate, numberFmt, percentFmt } from "../../utils/fmt.js";
 import StatusBadge from "./StatusBadge.jsx";
+import { updateBookingStatus } from "../../lib/api.js";
 
 function Spinner({ size = 16 }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className="inline-block align-[-2px]">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25" />
             <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="4" fill="none">
-                <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" />
+                <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 12 12"
+                    to="360 12 12"
+                    dur="0.8s"
+                    repeatCount="indefinite"
+                />
             </path>
         </svg>
     );
@@ -33,10 +41,11 @@ function diffObj(a, b) {
     return out;
 }
 
-export default function BookingRow({ b, i, onCarIn, onUpdate, saving }) {
+export default function BookingRow({ b, i, onUpdate, saving, refreshList }) {
     const [value, setValue] = useState(b);
     const [editing, setEditing] = useState({});
     const [dirty, setDirty] = useState(false);
+    const [loadingCarIn, setLoadingCarIn] = useState(false);
 
     useEffect(() => {
         setValue(b);
@@ -150,10 +159,22 @@ export default function BookingRow({ b, i, onCarIn, onUpdate, saving }) {
         }
     };
 
+    const handleCarIn = async () => {
+        setLoadingCarIn(true);
+        try {
+            await updateBookingStatus(b._id, "arrive");
+            setValue((prev) => ({ ...prev, status: "arrived" }));
+            if (refreshList) refreshList();
+        } catch (err) {
+            alert(`Failed to update status: ${err.message}`);
+        } finally {
+            setLoadingCarIn(false);
+        }
+    };
+
     return (
         <tr className="hover:bg-blue-50 transition">
             <td className="p-2 border">{i + 1}</td>
-            {/* Pre-booked date: read-only */}
             <td className="p-2 border">{fmtDate(b.preBookingDate)}</td>
 
             <td className="p-2 border">{editText("carRegNo", "Reg No.")}</td>
@@ -168,9 +189,13 @@ export default function BookingRow({ b, i, onCarIn, onUpdate, saving }) {
             <td className="p-2 border">{editNumber("partsCost")}</td>
             <td className="p-2 border">{percentFmt(profitPct)}</td>
 
-            <td className="p-2 border">{editText("remarks", "Remarks")}</td>
+            {/* ✅ Services display */}
+            <td className="p-2 border">
+                {Array.isArray(value.services) && value.services.length > 0
+                    ? value.services.join(", ")
+                    : value.remarks ?? ""}
+            </td>
 
-            {/* Status is controlled via dedicated status route; show badge only */}
             <td className="p-2 border">
                 <StatusBadge status={value.status} />
             </td>
@@ -181,8 +206,9 @@ export default function BookingRow({ b, i, onCarIn, onUpdate, saving }) {
                         onClick={handleUpdate}
                         disabled={saving}
                         aria-busy={saving ? "true" : "false"}
-                        className={`bg-red-600 text-white px-3 py-1 rounded ${saving ? "opacity-60 cursor-not-allowed" : "hover:bg-red-500"
-                            }`}
+                        className={`bg-red-600 text-white px-3 py-1 rounded ${
+                            saving ? "opacity-60 cursor-not-allowed" : "hover:bg-red-500"
+                        }`}
                         title={saving ? "Saving…" : "Save changes"}
                     >
                         {saving ? (
@@ -195,12 +221,13 @@ export default function BookingRow({ b, i, onCarIn, onUpdate, saving }) {
                     </button>
                 ) : (
                     <button
-                        onClick={() => onCarIn(value)}
-                        disabled={saving}
-                        className={`bg-green-600 text-white px-3 py-1 rounded ${saving ? "opacity-60 cursor-not-allowed" : "hover:bg-green-500"
-                            }`}
+                        onClick={handleCarIn}
+                        disabled={saving || loadingCarIn}
+                        className={`bg-green-600 text-white px-3 py-1 rounded ${
+                            saving || loadingCarIn ? "opacity-60 cursor-not-allowed" : "hover:bg-green-500"
+                        }`}
                     >
-                        Car In
+                        {loadingCarIn ? <Spinner size={16} /> : "Car In"}
                     </button>
                 )}
             </td>

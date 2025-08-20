@@ -31,6 +31,9 @@ export default function Sidebar({ onClose, onLogout, username }) {
           <li>
             <NavLink to="/pre-booking" className={itemClass}>Pre-Booking</NavLink>
           </li>
+           <li>
+            <NavLink to="/car-in" className={itemClass}>CarIn</NavLink>
+          </li>
           <li>
             <NavLink to="/settings" className={itemClass}>Settings</NavLink>
           </li>

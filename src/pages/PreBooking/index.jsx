@@ -4,13 +4,26 @@ import { useNavigate } from "react-router-dom";
 import useBookings from "../../hooks/useBookings.js";
 import BookingForm from "./BookingForm.jsx";
 import BookingsTable from "./BookingsTable.jsx";
+import { updateBookingStatus } from "../../lib/api.js"; // ⬅ added
 
 function InlineSpinner() {
     return (
         <svg width="16" height="16" viewBox="0 0 24 24" className="inline-block">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25" />
-            <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="4" fill="none">
-                <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" />
+            <path
+                d="M22 12a10 10 0 0 0-10-10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+            >
+                <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 12 12"
+                    to="360 12 12"
+                    dur="0.8s"
+                    repeatCount="indefinite"
+                />
             </path>
         </svg>
     );
@@ -21,12 +34,19 @@ export default function PreBookingPage() {
     const [showForm, setShowForm] = useState(false);
     const navigate = useNavigate();
 
+    // ✅ Updated to call API before navigating
     const onCarIn = useCallback(
-        (booking) => {
-            localStorage.setItem("gms_selectedBooking", JSON.stringify(booking));
-            navigate("/car-in");
+        async (booking) => {
+            try {
+                await updateBookingStatus(booking._id, "arrived");
+                booking.status = "arrived"; // update locally so UI updates
+                localStorage.setItem("gms_selectedBooking", JSON.stringify(booking));
+                navigate("/car-in");
+            } catch (err) {
+                setError(`Failed to update status: ${err.message}`);
+            }
         },
-        [navigate]
+        [navigate, setError]
     );
 
     const handleCreate = useCallback(
@@ -58,9 +78,12 @@ export default function PreBookingPage() {
                 </div>
             </div>
 
-            {/* Saving banner */}
             {saving && (
-                <div role="status" aria-live="polite" className="mb-3 rounded-md bg-yellow-100 text-yellow-900 px-3 py-2 text-sm inline-flex items-center gap-2">
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="mb-3 rounded-md bg-yellow-100 text-yellow-900 px-3 py-2 text-sm inline-flex items-center gap-2"
+                >
                     <InlineSpinner /> Saving changes…
                 </div>
             )}
@@ -72,7 +95,11 @@ export default function PreBookingPage() {
             )}
 
             {showForm && (
-                <BookingForm loading={saving} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+                <BookingForm
+                    loading={saving}
+                    onSubmit={handleCreate}
+                    onCancel={() => setShowForm(false)}
+                />
             )}
 
             {loadingList ? (
@@ -88,7 +115,7 @@ export default function PreBookingPage() {
                     onCarIn={onCarIn}
                     onUpdate={async (id, patch) => {
                         const res = await update(id, patch);
-                        return res; // Row expects {ok, ...}
+                        return res;
                     }}
                 />
             )}
