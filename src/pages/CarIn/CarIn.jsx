@@ -68,7 +68,7 @@ export default function CarIn() {
                 <th className="px-4 py-2 border">Labour</th>
                 <th className="px-4 py-2 border">Parts</th>
                 <th className="px-4 py-2 border">Profit</th>
-                <th className="px-4 py-2 border">Remarks</th>
+                <th className="px-4 py-2 border">Services</th> {/* ✅ changed */}
                 <th className="px-4 py-2 border">Status</th>
                 <th className="px-4 py-2 border">Action</th>
               </tr>
@@ -98,7 +98,11 @@ export default function CarIn() {
                     <td className="px-4 py-2 border">{booking.labourCost}</td>
                     <td className="px-4 py-2 border">{booking.partsCost}</td>
                     <td className="px-4 py-2 border">{profit}</td>
-                    <td className="px-4 py-2 border">{booking.remarks}</td>
+                    <td className="px-4 py-2 border">
+                      {Array.isArray(booking.services) && booking.services.length > 0
+                        ? booking.services.map(s => s.name).join(", ")
+                        : "—"}
+                    </td>
                     <td className="px-4 py-2 border">{booking.status}</td>
                     <td className="px-4 py-2 border">
                       <button
