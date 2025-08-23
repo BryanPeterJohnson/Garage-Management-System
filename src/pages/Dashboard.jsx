@@ -13,11 +13,7 @@ export default function Dashboard({ user }) {
       setError("");
       try {
         const data = await getAllBookings({ page: 1, limit: 100 });
-        if (data?.items) {
-          setBookings(data.items);
-        } else {
-          setBookings([]);
-        }
+        setBookings(data?.items || []);
       } catch (err) {
         setError(err.message || "Failed to fetch bookings");
       } finally {
@@ -38,9 +34,8 @@ export default function Dashboard({ user }) {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
-  // Helper to format PKR
-  const fmtPKR = (val) =>
-    val != null ? `PKR ${Number(val).toLocaleString("en-PK")}` : "";
+  // Helper to format currency (PKR)
+  const fmtPKR = (val) => val != null ? `PKR ${Number(val).toLocaleString("en-PK")}` : "";
 
   return (
     <div className="p-6">
@@ -56,7 +51,7 @@ export default function Dashboard({ user }) {
         <StatCard title="Pending" value={pendingBookings} />
       </div>
 
-      {/* Table */}
+      {/* Recent Bookings Table */}
       <div className="bg-white rounded shadow p-4 overflow-x-auto">
         <h2 className="text-xl font-semibold mb-4">Recent Bookings</h2>
         {loading && <p>Loading...</p>}
@@ -72,53 +67,44 @@ export default function Dashboard({ user }) {
                 <th className="p-2 border">Client Name</th>
                 <th className="p-2 border">Address</th>
                 <th className="p-2 border">Phone</th>
-                <th className="p-2 border">Remarks</th>
+                <th className="p-2 border">Remarks / Services</th>
                 <th className="p-2 border">Booking Price</th>
                 <th className="p-2 border">Profit %</th>
                 <th className="p-2 border">Status</th>
               </tr>
             </thead>
             <tbody>
-              {recentBookings.map((b, idx) => {
-                const totalPrice =
-                  (Number(b.bookingPrice) || 0) +
-                  (Number(b.labourCost) || 0) +
-                  (Number(b.partsCost) || 0);
-                const profit =
-                  b.bookingPrice && totalPrice
-                    ? ((Number(b.bookingPrice) -
-                        ((Number(b.labourCost) || 0) + (Number(b.partsCost) || 0))) /
-                        Number(b.bookingPrice)) *
-                      100
+              {recentBookings.length > 0 ? (
+                recentBookings.map((b, idx) => {
+                  const totalCost = (Number(b.labourCost) || 0) + (Number(b.partsCost) || 0);
+                  const profitPct = b.bookingPrice
+                    ? ((Number(b.bookingPrice) - totalCost) / Number(b.bookingPrice)) * 100
                     : 0;
+                  
+                  // Display services names if stored as objects
+                  const servicesText = Array.isArray(b.services) && b.services.length > 0
+                    ? b.services.map(s => (typeof s === "object" ? s.label || s.name : s)).join(", ")
+                    : b.remarks || "";
 
-                return (
-                  <tr key={b._id || idx} className="hover:bg-gray-50">
-                    <td className="p-2 border">{idx + 1}</td>
-                    <td className="p-2 border">
-                      {b.preBookingDate
-                        ? new Date(b.preBookingDate).toLocaleDateString()
-                        : ""}
-                    </td>
-                    <td className="p-2 border">{b.carRegNo}</td>
-                    <td className="p-2 border">{b.makeModel}</td>
-                    <td className="p-2 border">{b.clientName}</td>
-                    <td className="p-2 border">{b.clientAddress}</td>
-                    <td className="p-2 border">{b.phoneNumber}</td>
-                    <td className="p-2 border">{b.remarks || ""}</td>
-                    <td className="p-2 border">{fmtPKR(b.bookingPrice)}</td>
-                    <td className="p-2 border">
-                      {profit ? `${profit.toFixed(2)}%` : ""}
-                    </td>
-                    <td className="p-2 border">{b.status}</td>
-                  </tr>
-                );
-              })}
-              {recentBookings.length === 0 && (
+                  return (
+                    <tr key={b._id || idx} className="hover:bg-gray-50">
+                      <td className="p-2 border">{idx + 1}</td>
+                      <td className="p-2 border">{b.preBookingDate ? new Date(b.preBookingDate).toLocaleDateString() : ""}</td>
+                      <td className="p-2 border">{b.carRegNo}</td>
+                      <td className="p-2 border">{b.makeModel}</td>
+                      <td className="p-2 border">{b.clientName}</td>
+                      <td className="p-2 border">{b.clientAddress}</td>
+                      <td className="p-2 border">{b.phoneNumber}</td>
+                      <td className="p-2 border">{servicesText}</td>
+                      <td className="p-2 border">{fmtPKR(b.bookingPrice)}</td>
+                      <td className="p-2 border">{profitPct ? `${profitPct.toFixed(2)}%` : ""}</td>
+                      <td className="p-2 border">{b.status}</td>
+                    </tr>
+                  );
+                })
+              ) : (
                 <tr>
-                  <td colSpan={12} className="p-4 text-center text-gray-500">
-                    No bookings found
-                  </td>
+                  <td colSpan={11} className="p-4 text-center text-gray-500">No bookings found</td>
                 </tr>
               )}
             </tbody>

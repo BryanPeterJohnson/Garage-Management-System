@@ -9,6 +9,8 @@ export default function CarIn() {
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
+      setError("");
       try {
         const data = await getArrivedBookings();
         setBookings(Array.isArray(data.items) ? data.items : []);
@@ -35,13 +37,8 @@ export default function CarIn() {
     }
   }
 
-  if (loading) {
-    return <div className="p-6 text-gray-500">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="p-6 text-red-500">{error}</div>;
-  }
+  if (loading) return <div className="p-6 text-gray-500">Loading...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
     <div className="p-6">
@@ -68,7 +65,7 @@ export default function CarIn() {
                 <th className="px-4 py-2 border">Labour</th>
                 <th className="px-4 py-2 border">Parts</th>
                 <th className="px-4 py-2 border">Profit</th>
-                <th className="px-4 py-2 border">Services</th> {/* ✅ changed */}
+                <th className="px-4 py-2 border">Services</th>
                 <th className="px-4 py-2 border">Status</th>
                 <th className="px-4 py-2 border">Action</th>
               </tr>
@@ -76,33 +73,30 @@ export default function CarIn() {
             <tbody>
               {bookings.map((booking, index) => {
                 const profit =
-                  (booking.bookingPrice || 0) -
-                  (booking.labourCost || 0) -
-                  (booking.partsCost || 0);
+                  (Number(booking.bookingPrice) || 0) -
+                  (Number(booking.labourCost) || 0) -
+                  (Number(booking.partsCost) || 0);
+
+                const servicesText =
+                  Array.isArray(booking.services) && booking.services.length > 0
+                    ? booking.services.map(s => (typeof s === "object" ? s.name || s.label : s)).join(", ")
+                    : booking.remarks || "—";
 
                 return (
                   <tr key={booking._id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 border">{index + 1}</td>
-                    <td className="px-4 py-2 border">
-                      {booking.preBookingDate ? "Yes" : "No"}
-                    </td>
+                    <td className="px-4 py-2 border">{booking.preBookingDate ? "Yes" : "No"}</td>
                     <td className="px-4 py-2 border">{booking.carRegNo}</td>
                     <td className="px-4 py-2 border">{booking.makeModel}</td>
                     <td className="px-4 py-2 border">{booking.clientName}</td>
                     <td className="px-4 py-2 border">{booking.phoneNumber}</td>
                     <td className="px-4 py-2 border">{booking.clientAddress}</td>
-                    <td className="px-4 py-2 border">
-                      {new Date(booking.scheduledArrivalDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-2 border">{booking.bookingPrice}</td>
-                    <td className="px-4 py-2 border">{booking.labourCost}</td>
-                    <td className="px-4 py-2 border">{booking.partsCost}</td>
+                    <td className="px-4 py-2 border">{booking.scheduledArrivalDate ? new Date(booking.scheduledArrivalDate).toLocaleDateString() : ""}</td>
+                    <td className="px-4 py-2 border">{booking.bookingPrice || 0}</td>
+                    <td className="px-4 py-2 border">{booking.labourCost || 0}</td>
+                    <td className="px-4 py-2 border">{booking.partsCost || 0}</td>
                     <td className="px-4 py-2 border">{profit}</td>
-                    <td className="px-4 py-2 border">
-                      {Array.isArray(booking.services) && booking.services.length > 0
-                        ? booking.services.map(s => s.name).join(", ")
-                        : "—"}
-                    </td>
+                    <td className="px-4 py-2 border">{servicesText}</td>
                     <td className="px-4 py-2 border">{booking.status}</td>
                     <td className="px-4 py-2 border">
                       <button

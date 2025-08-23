@@ -1,4 +1,4 @@
-const API_BASE = "http://192.168.18.99:5000/api";
+const API_BASE = "http://192.168.18.84:5000/api";
 const TOKEN_KEY = "gms_token";
 
 // ===== TOKEN MANAGEMENT =====
