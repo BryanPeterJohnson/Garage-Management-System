@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from "react";
 import {
   getServices,
-  addService,
+  createService,
   updateService,
   deleteService,
-} from "../../lib/api.js"; // adjust path if needed
+} from "../../lib/api/serviceApi.js"; // adjust path if needed
 
 export default function Settings() {
   const [services, setServices] = useState([]);
@@ -31,12 +31,12 @@ export default function Settings() {
     }
   };
 
-  const handleAddService = async (e) => {
+  const handleCreateService = async (e) => {
     e.preventDefault();
     if (!newService.trim()) return;
     try {
       setLoading(true);
-      await addService({ name: newService.trim() });
+      await createService({ name: newService.trim() });
       setNewService("");
       fetchServices();
     } catch (err) {
@@ -85,7 +85,7 @@ export default function Settings() {
       <h1 className="text-2xl font-bold mb-4">Service Settings</h1>
 
       {/* Add Service */}
-      <form onSubmit={handleAddService} className="flex gap-2 mb-6">
+      <form onSubmit={handleCreateService} className="flex gap-2 mb-6">
         <input
           type="text"
           placeholder="Enter service name"

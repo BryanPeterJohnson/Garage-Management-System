@@ -1,4 +1,3 @@
-// app/src/pages/PreBooking/BookingsTable.jsx
 import React from "react";
 import BookingRow from "./BookingRow.jsx";
 
@@ -7,31 +6,30 @@ export default function BookingsTable({ bookings, onCarIn, onUpdate, saving }) {
         <div className="bg-white rounded-lg shadow border border-blue-100 overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="bg-blue-900 text-white">
-                        <th className="p-2 border">#</th>
-                        <th className="p-2 border">Pre-Booked</th>
-                        <th className="p-2 border">Reg No.</th>
-                        <th className="p-2 border">Make &amp; Model</th>
-                        <th className="p-2 border">Client</th>
-                        <th className="p-2 border">Phone</th>
-                        <th className="p-2 border">Address</th>
-                        <th className="p-2 border">Arrival (scheduled)</th>
-                        <th className="p-2 border">Booking Price</th>
-                        <th className="p-2 border">Labour</th>
-                        <th className="p-2 border">Parts</th>
-                        <th className="p-2 border">Profit</th>
-                        {/* ✅ Updated column header */}
-                        <th className="p-2 border">Services</th>
-                        <th className="p-2 border">Status</th>
-                        <th className="p-2 border">Actions</th>
+                    <tr className="bg-yellow-400 text-white">
+                        <th className="p-2 border" scope="col">#</th>
+                        <th className="p-2 border" scope="col">Booking Date</th>
+                        <th className="p-2 border" scope="col">Reg#</th>
+                        <th className="p-2 border" scope="col">Make & Model</th>
+                        <th className="p-2 border" scope="col">Client</th>
+                        <th className="p-2 border" scope="col">Phone</th>
+                        <th className="p-2 border" scope="col">Address</th>
+                        <th className="p-2 border" scope="col">Expected Arrival Date</th>
+                        <th className="p-2 border" scope="col">Booking Price</th>
+                        <th className="p-2 border" scope="col">Labour</th>
+                        <th className="p-2 border" scope="col">Parts</th>
+                        <th className="p-2 border" scope="col">Profit</th>
+                        <th className="p-2 border" scope="col">Services</th>
+                        <th className="p-2 border" scope="col">Status</th>
+                        <th className="p-2 border" scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {bookings.map((b, i) => (
+                    {bookings.map((booking, index) => (
                         <BookingRow
-                            key={b._id}
-                            b={b}
-                            i={i}
+                            key={booking._id}
+                            booking={booking}
+                            index={index}
                             onCarIn={onCarIn}
                             onUpdate={onUpdate}
                             saving={saving}

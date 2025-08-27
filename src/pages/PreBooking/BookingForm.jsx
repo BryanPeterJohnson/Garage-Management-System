@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { parseNum, numberFmt, percentFmt } from "../../utils/fmt.js";
-import { getServices } from "../../lib/api.js"; 
+import { getServices } from "../../lib/api/serviceApi.js";
 import Select from "react-select";
 
 const EMPTY = {
@@ -9,7 +9,7 @@ const EMPTY = {
     clientName: "",
     address: "",
     phone: "",
-    services: [], // array of {value: _id, label: name}
+    services: [],
     confirmedDate: "",
     price: "",
     labour: "",
@@ -20,15 +20,12 @@ export default function BookingForm({ loading, onSubmit, onCancel }) {
     const [form, setForm] = useState(EMPTY);
     const [serviceOptions, setServiceOptions] = useState([]);
 
-    // fetch services from backend
     useEffect(() => {
         (async () => {
             try {
                 const res = await getServices();
                 setServiceOptions(
-                    res
-                        .filter((s) => s.enabled)
-                        .map((s) => ({ value: s._id, label: s.name }))
+                    res.filter(s => s.enabled).map(s => ({ value: s._id, label: s.name }))
                 );
             } catch (err) {
                 console.error("Failed to fetch services:", err.message);
@@ -40,12 +37,10 @@ export default function BookingForm({ loading, onSubmit, onCancel }) {
 
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
-        setForm((f) => ({ ...f, [name]: value }));
+        setForm(f => ({ ...f, [name]: value }));
     }, []);
 
-    const handleServicesChange = (selected) => {
-        setForm((f) => ({ ...f, services: selected || [] }));
-    };
+    const handleServicesChange = (selected) => setForm(f => ({ ...f, services: selected || [] }));
 
     const { profit, profitPct } = useMemo(() => {
         const price = parseNum(form.price);
@@ -59,60 +54,44 @@ export default function BookingForm({ loading, onSubmit, onCancel }) {
 
     const validate = () => {
         const required = ["regNo", "makeModel", "clientName", "address", "phone"];
-        const missing = required.filter((k) => !String(form[k]).trim());
+        const missing = required.filter(k => !String(form[k]).trim());
         if (missing.length) return `Please fill: ${missing.join(", ")}`;
-        if (form.phone && String(form.phone).replace(/\D/g, "").length < 7) {
-            return "Please enter a valid phone number.";
-        }
+        if (form.phone && String(form.phone).replace(/\D/g, "").length < 7) return "Please enter a valid phone number.";
         return "";
     };
 
-    const handleSubmit = useCallback(
-        (e) => {
-            e.preventDefault();
-            const problem = validate();
-            if (problem) return onSubmit({ error: problem });
+    const handleSubmit = useCallback((e) => {
+        e.preventDefault();
+        const problem = validate();
+        if (problem) return onSubmit({ error: problem });
 
-            const selectedServices = form.services.map((s) => s.value);
+        const selectedServices = form.services.map(s => s.value);
 
-            onSubmit({
-                payload: {
-                    carRegNo: form.regNo.trim(),
-                    makeModel: form.makeModel.trim(),
-                    clientName: form.clientName.trim(),
-                    clientAddress: form.address.trim(),
-                    phoneNumber: String(form.phone).trim(),
-                    services: selectedServices, // IDs for backend
-                    remarks: form.services.map((s) => s.label).join(", "), // readable
-                    scheduledArrivalDate: form.confirmedDate
-                        ? new Date(form.confirmedDate).toISOString()
-                        : new Date().toISOString(),
-                    bookingPrice: parseNum(form.price),
-                    labourCost: parseNum(form.labour),
-                    partsCost: parseNum(form.parts),
-                },
-                reset: () => setForm(EMPTY),
-            });
-        },
-        [form, onSubmit]
-    );
+        onSubmit({
+            payload: {
+                carRegNo: form.regNo.trim(),
+                makeModel: form.makeModel.trim(),
+                clientName: form.clientName.trim(),
+                clientAddress: form.address.trim(),
+                phoneNumber: String(form.phone).trim(),
+                services: selectedServices,
+                remarks: form.services.map(s => s.label).join(", "),
+                scheduledArrivalDate: form.confirmedDate
+                    ? new Date(form.confirmedDate).toISOString()
+                    : new Date().toISOString(),
+                bookingPrice: parseNum(form.price),
+                labourCost: parseNum(form.labour),
+                partsCost: parseNum(form.parts),
+            },
+            reset: () => setForm(EMPTY),
+        });
+    }, [form, onSubmit]);
 
     const handleReset = useCallback(() => setForm(EMPTY), []);
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="rounded-lg shadow p-6 grid grid-cols-1 md:grid-cols-2 gap-4 border border-blue-100 mb-6"
-        >
-            <input
-                type="date"
-                value={todayISO}
-                readOnly
-                className="border border-gray-300 rounded p-2 bg-gray-100 cursor-not-allowed"
-                aria-label="Pre-booked on (today)"
-                tabIndex={-1}
-            />
-
+        <form onSubmit={handleSubmit} className="rounded-lg shadow p-6 grid grid-cols-1 md:grid-cols-2 gap-4 border border-blue-100 mb-6">
+            <input type="date" value={todayISO} readOnly className="border border-gray-300 rounded p-2 bg-gray-100 cursor-not-allowed" aria-label="Pre-booked on (today)" tabIndex={-1} />
             <input type="text" name="regNo" placeholder="Reg No." value={form.regNo} onChange={handleChange} className="border border-gray-300 rounded p-2" required />
             <input type="text" name="makeModel" placeholder="Make & Model" value={form.makeModel} onChange={handleChange} className="border border-gray-300 rounded p-2" required />
             <input type="text" name="clientName" placeholder="Client Name" value={form.clientName} onChange={handleChange} className="border border-gray-300 rounded p-2" required />
