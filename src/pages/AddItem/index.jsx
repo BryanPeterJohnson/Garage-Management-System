@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getSuppliers, createSupplier, updateSupplier } from "../../lib/api/supplierApi.js";
-import { getParts, createPart, updatePart } from "../../lib/api/partsApi.js";
+import { getParts, createPart, updatePart } from "../../lib/api/partApi.js";
 import { getServices, createService, updateService } from "../../lib/api/serviceApi.js";
-import Modal from "../../components/Modal.jsx";
+import Modal from "../../components/AddItemsModal.jsx";
 
 export default function AddPage() {
     const [suppliers, setSuppliers] = useState([]);

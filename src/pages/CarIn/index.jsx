@@ -1,46 +1,136 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useBookings from "../../hooks/useBookings.js";
-import CarInTable from "./CarInTable.jsx";
-import { updateBookingStatus } from "../../lib/api/bookingApi.js";
+import BookingTable from "./bookingTable.jsx";
 import { toast } from "react-toastify";
-import BookingsContent from "../../components/BookingsContent.jsx";
+import BookingsContent from "./BookingsContent.jsx";
+import BookingDetailModal from "./BookingDetailModal.jsx";
+import UpsellModal from "./UpsellModal.jsx";
 
 export default function CarInPage() {
-    const { list: bookings, loadingList, error, setError, refresh } = useBookings({ status: "arrived" });
-    const [loadingCarOutId, setLoadingCarOutId] = useState(null);
     const navigate = useNavigate();
+    const [loadingCarOutId, setLoadingCarOutId] = useState(null);
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [activeModal, setActiveModal] = useState(null); // "booking" | "upsell" | null
+    const [refreshFlag, setRefreshFlag] = useState(0); // trigger refresh in BookingDetailModal
 
+    const {
+        list: bookings,
+        setList: setBookings,
+        loadingList,
+        error,
+        setError,
+        updateStatus,
+        refresh,
+        page,
+        setPage,
+        totalPages,
+        totalItems,
+    } = useBookings({ status: "arrived" });
+
+    // --- Handle Car Out ---
     const handleCarOut = useCallback(
         async (booking) => {
             setLoadingCarOutId(booking._id);
             try {
-                await updateBookingStatus(booking._id, "complete");
-                toast.success("Car checked out successfully!");
-                await refresh?.();
-                navigate("/dashboard");
+                const res = await updateStatus(booking._id, "completed");
+                if (res.ok) {
+                    toast.success("Car checked out successfully!");
+                    setBookings((prev) => prev.filter((b) => b._id !== booking._id));
+                    await refresh();
+                } else {
+                    toast.error(res.error || "Failed to check out car");
+                }
             } catch (err) {
-                const backendMessage = err.response?.data?.error || err.response?.data?.errors?.[0]?.message || err.message;
-                setError(`Failed to update status: ${backendMessage}`);
-                toast.error(`Failed to check out car: ${backendMessage}`);
+                const backendMessage = err.message || "Failed to check out car";
+                setError(backendMessage);
+                toast.error(backendMessage);
             } finally {
                 setLoadingCarOutId(null);
             }
         },
-        [navigate, setError, refresh]
+        [updateStatus, refresh, setBookings, setError]
     );
+
+    // --- Open Booking Detail ---
+    const handleSelectBooking = (booking) => {
+        setSelectedBooking(booking);
+        setActiveModal("booking");
+    };
+
+    // --- Switch to Upsell Modal from Booking Detail ---
+    const handleAddUpsell = () => {
+        setActiveModal("upsell");
+    };
+
+    // --- After Upsell Saved ---
+    const handleUpsellClose = (didUpdate = false) => {
+        if (didUpdate) {
+            setRefreshFlag((f) => f + 1); // trigger BookingDetailModal refresh
+        }
+        setActiveModal("booking"); // reopen BookingDetailModal
+    };
 
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-4 text-blue-900">Arrived Cars</h1>
+
             <BookingsContent
                 loading={loadingList}
                 error={error}
                 items={bookings}
-                TableComponent={CarInTable}
-                tableProps={{ bookings, onCarOut: handleCarOut, loadingCarOutId }}
+                TableComponent={BookingTable}
+                tableProps={{
+                    bookings,
+                    onCarOut: handleCarOut,
+                    onSelectBooking: handleSelectBooking,
+                    loadingCarOutId,
+                }}
                 emptyMessage="No arrived bookings found."
             />
+
+            {/* Booking Detail Modal */}
+            {activeModal === "booking" && selectedBooking && (
+                <BookingDetailModal
+                    booking={selectedBooking}
+                    isOpen={true}
+                    onClose={() => setActiveModal(null)}
+                    onAddUpsell={handleAddUpsell}
+                    refreshFlag={refreshFlag}
+                />
+            )}
+
+            {/* Upsell Modal */}
+            {activeModal === "upsell" && selectedBooking && (
+                <UpsellModal
+                    booking={selectedBooking}
+                    isOpen={true}
+                    onClose={handleUpsellClose}
+                />
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="mt-4 flex justify-center gap-2">
+                    <button
+                        disabled={page <= 1}
+                        className="px-3 py-1 border rounded disabled:opacity-50"
+                        onClick={() => setPage(page - 1)}
+                    >
+                        Previous
+                    </button>
+                    <span className="px-3 py-1 border rounded">
+                        Page {page} of {totalPages} ({totalItems} bookings)
+                    </span>
+                    <button
+                        disabled={page >= totalPages}
+                        className="px-3 py-1 border rounded disabled:opacity-50"
+                        onClick={() => setPage(page + 1)}
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

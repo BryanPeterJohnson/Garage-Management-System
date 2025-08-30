@@ -12,16 +12,15 @@ export default function BookingsTable({ bookings, onCarIn, onUpdate, saving }) {
                         <th className="p-2 border" scope="col">Reg#</th>
                         <th className="p-2 border" scope="col">Make & Model</th>
                         <th className="p-2 border" scope="col">Client</th>
-                        <th className="p-2 border" scope="col">Phone</th>
                         <th className="p-2 border" scope="col">Address</th>
+                        <th className="p-2 border" scope="col">Phone</th>
                         <th className="p-2 border" scope="col">Expected Arrival Date</th>
                         <th className="p-2 border" scope="col">Booking Price</th>
                         <th className="p-2 border" scope="col">Labour</th>
                         <th className="p-2 border" scope="col">Parts</th>
                         <th className="p-2 border" scope="col">Profit</th>
                         <th className="p-2 border" scope="col">Services</th>
-                        <th className="p-2 border" scope="col">Status</th>
-                        <th className="p-2 border" scope="col">Actions</th>
+                        <th className="p-2 border" scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>

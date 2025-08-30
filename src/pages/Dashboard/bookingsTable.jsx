@@ -1,8 +1,8 @@
-// src/pages/RecentBookingsTable.jsx
+// src/pages/bookingsTable.jsx
 import React, { useMemo } from "react";
-import RecentBookingRow from "./RecentBookingRow.jsx";
+import BookingRow from "./bookingRow.jsx";
 
-export default function RecentBookingsTable({ bookings, loading, error }) {
+export default function BookingsTable({ bookings, loading, error }) {
     const recentBookings = useMemo(() => {
         return [...bookings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
     }, [bookings]);
@@ -23,6 +23,8 @@ export default function RecentBookingsTable({ bookings, loading, error }) {
                         <th className="p-2 border">Phone</th>
                         <th className="p-2 border">Remarks / Services</th>
                         <th className="p-2 border">Booking Price</th>
+                        <th className="p-2 border">Labour Price</th>
+                        <th className="p-2 border">Parts Price</th>
                         <th className="p-2 border">Profit %</th>
                         <th className="p-2 border">Status</th>
                     </tr>
@@ -48,7 +50,7 @@ export default function RecentBookingsTable({ bookings, loading, error }) {
                         </tr>
                     ) : (
                         recentBookings.map((booking, idx) => (
-                            <RecentBookingRow key={booking._id || idx} booking={booking} index={idx} />
+                            <BookingRow key={booking._id || idx} booking={booking} index={idx} />
                         ))
                     )}
                 </tbody>

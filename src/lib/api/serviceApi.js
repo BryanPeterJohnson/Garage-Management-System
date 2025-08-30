@@ -1,7 +1,7 @@
 import axios from "./axiosInstance.js";
 
 export async function getServices() {
-    const res = await axios.get("/service"); // singular
+    const res = await axios.get("/service"); // all
     return res.data;
 }
 
