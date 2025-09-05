@@ -10,7 +10,7 @@ import PreBooking from "./pages/PreBooking/index.jsx";
 import CarIn from "./pages/CarIn/index.jsx";
 import Login from "./pages/Login.jsx";
 import Settings from "./pages/Settings/index.jsx";
-import AddItem from "./pages/AddItem/index.jsx";
+import Entities from "./pages/Entities/index.jsx";
 
 // ✅ Import AuthApi only
 import { AuthApi } from "./lib/api/authApi.js";
@@ -66,7 +66,7 @@ export default function App() {
             <Route path="/pre-booking" element={<PreBooking />} />
             <Route path="/car-in" element={<CarIn />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/addItem" element={<AddItem />} />
+            <Route path="/entities" element={<Entities />} />
           </Route>
         </Route>
 

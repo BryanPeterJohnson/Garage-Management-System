@@ -5,7 +5,7 @@ import {
   createService,
   updateService,
   deleteService,
-} from "../../lib/api/serviceApi.js"; // adjust path if needed
+} from "../../lib/api/servicesApi.js"; // adjust path if needed
 
 export default function Settings() {
   const [services, setServices] = useState([]);

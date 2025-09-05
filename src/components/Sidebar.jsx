@@ -38,7 +38,7 @@ export default function Sidebar({ onClose, onLogout, username }) {
             <NavLink to="/settings" className={itemClass}>Settings</NavLink>
           </li>
           <li>
-            <NavLink to="/addItem" className={itemClass}>Add Items</NavLink>
+            <NavLink to="/entities" className={itemClass}>Entities</NavLink>
           </li>
         </ul>
       </nav>

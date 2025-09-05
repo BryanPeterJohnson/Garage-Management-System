@@ -12,7 +12,6 @@ export default function CarInPage() {
     const [loadingCarOutId, setLoadingCarOutId] = useState(null);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [activeModal, setActiveModal] = useState(null); // "booking" | "upsell" | null
-    const [refreshFlag, setRefreshFlag] = useState(0); // trigger refresh in BookingDetailModal
 
     const {
         list: bookings,
@@ -64,10 +63,7 @@ export default function CarInPage() {
     };
 
     // --- After Upsell Saved ---
-    const handleUpsellClose = (didUpdate = false) => {
-        if (didUpdate) {
-            setRefreshFlag((f) => f + 1); // trigger BookingDetailModal refresh
-        }
+    const handleUpsellClose = () => {
         setActiveModal("booking"); // reopen BookingDetailModal
     };
 
@@ -96,7 +92,6 @@ export default function CarInPage() {
                     isOpen={true}
                     onClose={() => setActiveModal(null)}
                     onAddUpsell={handleAddUpsell}
-                    refreshFlag={refreshFlag}
                 />
             )}
 

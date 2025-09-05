@@ -1,4 +1,4 @@
-// src/components/BookingsContent.jsx
+// src/pages/CarIn/BookingsContent.jsx
 import React from "react";
 
 export default function BookingsContent({

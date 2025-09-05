@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { parseNum, numberFmt, percentFmt } from "../../utils/fmt.js";
-import { getServices } from "../../lib/api/serviceApi.js";
+import { getServices } from "../../lib/api/servicesApi.js";
 import Select from "react-select";
 
 const EMPTY = {

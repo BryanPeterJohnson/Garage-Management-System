@@ -1,6 +1,6 @@
-// src/components/UpsellModal.jsx
+// src/pages/CarIn/UpsellModal.jsx
 import React, { useState, useEffect } from "react";
-import { ServiceApi, PartApi, UpsellApi } from "../../lib/api";
+import { ServicesApi, PartsApi, UpsellApi } from "../../lib/api";
 
 export default function UpsellModal({ isOpen, onClose, booking, onSaved }) {
     const [services, setServices] = useState([]);
@@ -19,10 +19,10 @@ export default function UpsellModal({ isOpen, onClose, booking, onSaved }) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const serviceList = await ServiceApi.getServices();
+                const serviceList = await ServicesApi.getServices();
                 setServices(Array.isArray(serviceList) ? serviceList : serviceList.items || []);
 
-                const partList = await PartApi.getParts();
+                const partList = await PartsApi.getParts();
                 setParts(Array.isArray(partList) ? partList : partList.items || []);
             } catch (err) {
                 console.error("Failed to fetch dropdown data", err);
