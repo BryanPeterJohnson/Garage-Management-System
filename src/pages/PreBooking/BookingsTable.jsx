@@ -1,41 +1,50 @@
-import React from "react";
+// src/pages/PreBooking/BookingsTable.jsx
+import React, { useMemo } from "react";
 import BookingRow from "./BookingRow.jsx";
 
-export default function BookingsTable({ bookings, onCarIn, onUpdate, saving }) {
-    return (
-        <div className="bg-white rounded-lg shadow border border-blue-100 overflow-x-auto">
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="bg-yellow-400 text-white">
-                        <th className="p-2 border" scope="col">#</th>
-                        <th className="p-2 border" scope="col">Booking Date</th>
-                        <th className="p-2 border" scope="col">Reg#</th>
-                        <th className="p-2 border" scope="col">Make & Model</th>
-                        <th className="p-2 border" scope="col">Client</th>
-                        <th className="p-2 border" scope="col">Address</th>
-                        <th className="p-2 border" scope="col">Phone</th>
-                        <th className="p-2 border" scope="col">Expected Arrival Date</th>
-                        <th className="p-2 border" scope="col">Booking Price</th>
-                        <th className="p-2 border" scope="col">Labour</th>
-                        <th className="p-2 border" scope="col">Parts</th>
-                        <th className="p-2 border" scope="col">Profit</th>
-                        <th className="p-2 border" scope="col">Services</th>
-                        <th className="p-2 border" scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {bookings.map((booking, index) => (
-                        <BookingRow
-                            key={booking._id}
-                            booking={booking}
-                            index={index}
-                            onCarIn={onCarIn}
-                            onUpdate={onUpdate}
-                            saving={saving}
-                        />
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+export default function BookingsTable({ bookings, onUpdate }) {
+  const recentBookings = useMemo(() => {
+    // show latest 5 bookings by createdAt
+    return [...bookings]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+  }, [bookings]);
+
+  return (
+    <div className="bg-white rounded shadow p-4 overflow-x-auto">
+      <table className="w-full border-collapse text-sm min-w-[1000px]">
+        <thead>
+          <tr className="bg-gray-200 text-left">
+            <th className="p-1">#</th>
+            <th className="p-2">Booking Date</th>
+            <th className="p-2">Landing Date</th>
+            <th className="p-2">Reg No</th>
+            <th className="p-3">Make & Model</th>
+            <th className="p-3">Client</th>
+            <th className="p-3">Address</th>
+            <th className="p-3">Postal Code</th>
+            <th className="p-3">Phone</th>
+            <th className="p-3 text-right">Booking Price</th>
+            <th className="p-3 text-right">Labour</th>
+            <th className="p-3 text-right">Parts</th>
+            <th className="p-3 text-right">Profit</th>
+            <th className="p-3">Services</th>
+            <th className="p-3">Remarks</th>
+            <th className="p-3">Source</th>
+            <th className="p-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recentBookings.map((booking, idx) => (
+            <BookingRow
+              key={booking._id || idx}
+              booking={booking}
+              index={idx}
+              onUpdate={onUpdate} // pass API update callback
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
