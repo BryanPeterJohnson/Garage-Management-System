@@ -11,7 +11,7 @@ export default function BookingsTable({ bookings, onUpdate }) {
   }, [bookings]);
 
   return (
-    <div className="bg-white rounded shadow p-4 overflow-x-auto">
+    <div className="bg-white rounded shadow overflow-x-auto">
       <table className="w-full border-collapse text-sm min-w-[1000px]">
         <thead>
           <tr className="bg-gray-200 text-left">

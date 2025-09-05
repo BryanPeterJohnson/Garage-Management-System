@@ -12,8 +12,8 @@ const EMPTY = {
   ownerPostalCode: "",
   ownerNumber: "",
   source: "",
-  services: [],
   scheduledDate: "",
+  prebookingServices: [],
   prebookingBookingPrice: "",
   prebookingLabourCost: "",
   prebookingPartsCost: "",
@@ -52,14 +52,14 @@ export default function BookingForm({ loading, onSubmit, onCancel, initialData }
         scheduledDate: initialData.scheduledDate
           ? new Date(initialData.scheduledDate).toISOString().slice(0, 10)
           : "",
-        prebookingBookingPrice: initialData.bookingPrice || "",
-        prebookingLabourCost: initialData.labourCost || "",
-        prebookingPartsCost: initialData.partsCost || "",
-        services: Array.isArray(initialData.services)
-          ? initialData.services.map((s) => ({
-              value: s._id || s.value || s,
-              label: s.label || s.name || s.serviceName || s,
-            }))
+        prebookingBookingPrice: initialData.prebookingBookingPrice || initialData.bookingPrice || "",
+        prebookingLabourCost: initialData.prebookingLabourCost || initialData.labourCost || "",
+        prebookingPartsCost: initialData.prebookingPartsCost || initialData.partsCost || "",
+        prebookingServices: Array.isArray(initialData.prebookingServices || initialData.services)
+          ? (initialData.prebookingServices || initialData.services).map((s) => ({
+            value: s._id || s.value || s,
+            label: s.label || s.name || s.serviceName || s,
+          }))
           : [],
         remarks: initialData.remarks || "",
       });
@@ -74,7 +74,7 @@ export default function BookingForm({ loading, onSubmit, onCancel, initialData }
   }, []);
 
   const handleServicesChange = (selected) =>
-    setForm((f) => ({ ...f, services: selected || [] }));
+    setForm((f) => ({ ...f, prebookingServices: selected || [] }));
 
   // --- Profit calculation ---
   const { profit, profitPct } = useMemo(() => {
@@ -108,35 +108,31 @@ export default function BookingForm({ loading, onSubmit, onCancel, initialData }
     return "";
   };
 
-  // --- Handle submit for both create and update ---
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
       const problem = validate();
       if (problem) return onSubmit({ error: problem });
 
-      const selectedServices = form.services.map((s) => s.value);
+      const payload = {
+        vehicleRegNo: form.vehicleRegNo.trim(),
+        makeModel: form.makeModel.trim(),
+        ownerName: form.ownerName.trim(),
+        ownerAddress: form.ownerAddress.trim(),
+        ownerPostalCode: form.ownerPostalCode.trim(),
+        ownerNumber: String(form.ownerNumber).trim(),
+        source: String(form.source).trim(),
+        scheduledDate: form.scheduledDate
+          ? new Date(form.scheduledDate).toISOString()
+          : new Date().toISOString(),
+        prebookingBookingPrice: parseNum(form.prebookingBookingPrice),
+        prebookingLabourCost: parseNum(form.prebookingLabourCost),
+        prebookingPartsCost: parseNum(form.prebookingPartsCost),
+        prebookingServices: form.prebookingServices.map((s) => s.value),
+        remarks: form.remarks,
+      };
 
-      onSubmit({
-        payload: {
-          vehicleRegNo: form.vehicleRegNo.trim(),
-          makeModel: form.makeModel.trim(),
-          ownerName: form.ownerName.trim(),
-          ownerAddress: form.ownerAddress.trim(),
-          ownerPostalCode: form.ownerPostalCode.trim(),
-          ownerNumber: String(form.ownerNumber).trim(),
-          source: String(form.source).trim(),
-          scheduledDate: form.scheduledDate
-            ? new Date(form.scheduledDate).toISOString()
-            : new Date().toISOString(),
-          bookingPrice: parseNum(form.prebookingBookingPrice),
-          labourCost: parseNum(form.prebookingLabourCost),
-          partsCost: parseNum(form.prebookingPartsCost),
-          services: selectedServices,
-          remarks: form.remarks,
-        },
-        reset: () => setForm(EMPTY),
-      });
+      onSubmit({ payload, reset: () => setForm(EMPTY) });
     },
     [form, onSubmit]
   );
@@ -229,7 +225,7 @@ export default function BookingForm({ loading, onSubmit, onCancel, initialData }
         <Select
           isMulti
           options={serviceOptions}
-          value={form.services}
+          value={form.prebookingServices}
           onChange={handleServicesChange}
           placeholder="Choose services..."
           className="text-sm"

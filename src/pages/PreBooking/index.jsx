@@ -11,7 +11,7 @@ import Modal from "../../components/Modal.jsx";
 export default function PreBookingPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [editingBooking, setEditingBooking] = useState(null); // null = create, object = update
+  const [editingBooking, setEditingBooking] = useState(null);
   const [loadingCarInId, setLoadingCarInId] = useState(null);
 
   const {
@@ -19,7 +19,6 @@ export default function PreBookingPage() {
     loadingList,
     saving,
     error,
-    setError,
     create,
     update,
     updateStatus,
@@ -29,7 +28,6 @@ export default function PreBookingPage() {
     totalItems,
   } = useBookings({ status: "pending", pageSize: 20 });
 
-  // --- Inline update handler from table ---
   const handleUpdate = useCallback(
     async (id, payload) => {
       const res = await update(id, payload);
@@ -39,7 +37,6 @@ export default function PreBookingPage() {
     [update]
   );
 
-  // --- Mark car as arrived ---
   const handleCarIn = useCallback(
     async (booking) => {
       setLoadingCarInId(booking._id);
@@ -53,25 +50,21 @@ export default function PreBookingPage() {
     [updateStatus, navigate]
   );
 
-  // --- Open create booking modal ---
   const handleAddBooking = () => {
-    setEditingBooking(null); // null = create
+    setEditingBooking(null);
     setShowModal(true);
   };
 
-  // --- Open edit booking modal ---
   const handleEditBooking = (booking) => {
-    setEditingBooking(booking); // pass booking to prefill form
+    setEditingBooking(booking);
     setShowModal(true);
   };
 
-  // --- Handle create or update submit ---
   const handleFormSubmit = useCallback(
     async ({ payload, reset, error: errMsg }) => {
       if (errMsg) return toast.error(errMsg);
 
       if (editingBooking) {
-        // Update existing booking
         const res = await update(editingBooking._id, payload);
         if (res.ok) {
           toast.success("Booking updated successfully!");
@@ -79,7 +72,6 @@ export default function PreBookingPage() {
           setEditingBooking(null);
         } else toast.error(res.error || "Failed to update booking");
       } else {
-        // Create new booking
         const res = await create(payload);
         if (res.ok) {
           toast.success("Booking created successfully!");
@@ -92,38 +84,43 @@ export default function PreBookingPage() {
   );
 
   return (
-    <div className="p-4 relative">
-      <h1 className="text-3xl font-bold text-blue-900 mb-6">Pre-Booking</h1>
+    <div className="relative min-h-screen bg-gray-50">
+      <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-6 drop-shadow-sm">
+        Pre-Booking
+      </h1>
 
       {loadingList ? (
-        <div className="bg-white rounded-lg shadow border border-blue-100 p-4 text-center text-gray-500 inline-flex items-center justify-center gap-2">
-          <InlineSpinner /> Loading bookings…
+        <div className="bg-white rounded-xl shadow-md border border-blue-100 p-6 flex items-center justify-center gap-3">
+          <InlineSpinner />
+          <span className="text-gray-500 text-lg">Loading bookings…</span>
         </div>
       ) : bookings.length === 0 ? (
-        <div className="p-6 bg-yellow-100 text-yellow-800 rounded">No pending bookings found.</div>
+        <div className="p-6 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-md shadow-sm">
+          No pending bookings found. Click <strong>+</strong> to add a new booking.
+        </div>
       ) : (
         <>
           <BookingsTable
             bookings={bookings}
             onUpdate={handleUpdate}
-            onEdit={handleEditBooking} // pass edit callback for row modal
+            onEdit={handleEditBooking}
           />
 
           {totalPages > 1 && (
-            <div className="mt-4 flex justify-center gap-2">
+            <div className="mt-4 flex justify-center items-center gap-3 text-gray-700">
               <button
                 disabled={page <= 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
                 onClick={() => setPage(page - 1)}
               >
                 Previous
               </button>
-              <span className="px-3 py-1 border rounded">
+              <span className="px-3 py-1 border rounded bg-white shadow-sm">
                 Page {page} of {totalPages} ({totalItems} bookings)
               </span>
               <button
                 disabled={page >= totalPages}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
                 onClick={() => setPage(page + 1)}
               >
                 Next
@@ -133,9 +130,10 @@ export default function PreBookingPage() {
         </>
       )}
 
+      {/* Floating Add Booking Button */}
       <button
         onClick={handleAddBooking}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full text-3xl font-bold flex items-center justify-center shadow-lg"
+        className="fixed bottom-6 right-6 bg-gradient-to-br from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white w-16 h-16 rounded-full text-4xl font-bold flex items-center justify-center shadow-xl transition-transform hover:scale-110"
         title="Add New Booking"
       >
         +
@@ -144,7 +142,7 @@ export default function PreBookingPage() {
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
         <BookingForm
           loading={saving}
-          booking={editingBooking} // prefill form if editing
+          booking={editingBooking}
           onSubmit={handleFormSubmit}
           onCancel={() => setShowModal(false)}
         />
